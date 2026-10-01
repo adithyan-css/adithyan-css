@@ -85,7 +85,7 @@ class Doc:
 
     def render(self, w, h, body, style="", title=""):
         defs = "".join(f'<path id="{k}" d="{v}"/>' for k, v in self.defs.items())
-        t = f"<title>{title}</title>" if title else ""
+        t = f"<title>{title.replace('&', '&amp;').replace('<', '&lt;')}</title>" if title else ""
         return (f'<svg xmlns="http://www.w3.org/2000/svg" '
                 f'xmlns:xlink="http://www.w3.org/1999/xlink" width="{w}" height="{h}" '
                 f'viewBox="0 0 {w} {h}" fill="none">{t}'
