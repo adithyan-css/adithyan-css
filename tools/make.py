@@ -1,4 +1,5 @@
 """Generates the SVG artwork for the adithyan-css profile README.
+Theme: projects in orbit — deep space navy, amber + coral.
 Run:  python make.py   (writes ../assets/*.svg)"""
 import math
 import random
@@ -9,16 +10,43 @@ OUT = Path(__file__).parent.parent / "assets"
 OUT.mkdir(parents=True, exist_ok=True)
 
 # ── tokens ────────────────────────────────────────────────────────────────
-BG, BG2, PANEL = "#070b10", "#0b1219", "#0d151d"
-LINE, DIMLINE = "#1c2a35", "#13202a"
-TEXT, SOFT, MUTED = "#e6f1f3", "#a9c3c9", "#5f7a83"
-TEAL, CYAN, MINT = "#2dd4bf", "#38bdf8", "#99f6e4"
-WARN, BAD = "#fbbf24", "#fb7185"
+SPACE, SPACE2 = "#0a0c1b", "#11142b"
+LINE = "#252a4a"
+TEXT, SOFT, MUTED = "#f4f1ea", "#c3c0d6", "#7c7a9a"
+AMBER, CORAL = "#ffb547", "#ff7a59"
 
-SANSB = Face("sb", "InterTight.ttf", wght=900)
-SANSM = Face("sm", "InterTight.ttf", wght=600)
-MONO = Face("mo", "JetBrainsMono.ttf", wght=400)
-MONOB = Face("mb", "JetBrainsMono.ttf", wght=700)
+DISPLAY = Face("dp", "SpaceGrotesk.ttf", wght=700)
+BODY = Face("bd", "SpaceGrotesk.ttf", wght=400)
+MONO = Face("mo", "SpaceMono.ttf")
+MONOB = Face("mb", "SpaceMono-Bold.ttf")
+
+GH = "https://github.com/adithyan-css/"
+PROJECTS = [
+    dict(key="rs", name="RiderShield AI", short="RiderShield", cat="EDGE AI", color="#ffb547",
+         line="Sees the crash before the rider does: vision on a Raspberry Pi.",
+         stats=[("Inference", "15 FPS"), ("Latency budget", "<100 ms"), ("Model", "INT8")],
+         tags=["TFLite", "ESP32", "MQTT", "Flutter"], url=GH + "RIDERSHIELD_AI"),
+    dict(key="ag", name="AgriPrice AI", short="AgriPrice", cat="FORECAST", color="#b5e853",
+         line="Tells farmers when to sell, and how sure it is about it.",
+         stats=[("Ensemble", "3 models"), ("Horizon", "7 days"), ("Markets", "92")],
+         tags=["Chronos", "Prophet", "NestJS", "Flutter"], url=GH + "Agri_app"),
+    dict(key="rg", name="RoboGuard", short="RoboGuard", cat="ROBOTICS", color="#ff7a59",
+         line="Hears a motor failing before it fails, and watches the zone around it.",
+         stats=[("Early warning", "10–30 steps"), ("Telemetry", "10 Hz"), ("Vision", "YOLOv8")],
+         tags=["LSTM", "YOLOv8", "FastAPI", "React"], url=GH + "RoboGuard"),
+    dict(key="hx", name="Helix", short="Helix", cat="AUTONOMY", color="#6ec6ff",
+         line="Software that attacks itself, heals, and remembers the fix.",
+         stats=[("Immune memory", "1536-d"), ("Cognition", "27B LLM"), ("Heal loop", "4 stages")],
+         tags=["TypeScript", "MongoDB", "Groq", "n8n"], url=GH + "Helix"),
+    dict(key="kv", name="Kaaval", short="Kaaval", cat="SECURITY", color="#ff6f9c",
+         line="Every request signed by a key that never leaves the browser.",
+         stats=[("Checks / request", "7"), ("Key", "P-256"), ("Tests passing", "162")],
+         tags=["Web Crypto", "WebAuthn", "FastAPI", "Next.js"], url=GH + "Kaaval"),
+    dict(key="sr", name="Smart Rover", short="Smart Rover", cat="IOT", color="#f4d58d",
+         line="A control station the rover serves from its own access point.",
+         stats=[("Frameworks", "0"), ("Link", "WebSocket"), ("App size", "3 files")],
+         tags=["JavaScript", "WebSocket", "ESP32"], url="https://smart-rover-opal.vercel.app"),
+]
 
 
 def save(name, svg):
@@ -26,322 +54,288 @@ def save(name, svg):
     print(f"{name:20s} {len(svg)/1024:6.1f} KB")
 
 
-def check(x, y, s=8, color=TEAL):
-    return f'<path d="M{x} {y+s*.55}L{x+s*.38} {y+s}L{x+s} {y}" stroke="{color}" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/>'
-
-
-def cross(x, y, s=8, color=BAD):
-    return f'<path d="M{x} {y}L{x+s} {y+s}M{x+s} {y}L{x} {y+s}" stroke="{color}" stroke-width="1.8" stroke-linecap="round"/>'
-
-
-def window(d, W, H, title, dots=(TEAL, CYAN, MUTED)):
-    s = (f'<rect x=".5" y=".5" width="{W-1}" height="{H-1}" rx="14" fill="{PANEL}" stroke="{LINE}"/>'
-         f'<path d="M1 42H{W-1}" stroke="{LINE}"/>')
-    for i, c in enumerate(dots):
-        s += f'<circle cx="{24 + i*20}" cy="21" r="5.5" fill="{c}" opacity=".85"/>'
-    s += d.text(MONO, title, W/2, 26, 12, fill=MUTED, anchor="middle")
+def stars(rnd, W, H, n=150, twinkle=24):
+    s = ""
+    for i in range(n):
+        x, y, r = rnd.uniform(0, W), rnd.uniform(0, H), rnd.choice([.6, .7, .9, 1.1, 1.4])
+        cls = f' class="tw" style="animation-delay:{rnd.uniform(0, 4):.1f}s"' if i < twinkle else ""
+        s += f'<circle cx="{x:.0f}" cy="{y:.0f}" r="{r}" fill="#fff" opacity="{rnd.uniform(.25, .8):.2f}"{cls}/>'
     return s
 
 
+TW_CSS = ".tw{animation:tw 3.2s ease-in-out infinite}@keyframes tw{50%{opacity:.05}}"
+
+
 # ══════════════════════════════════════════════════════════════════════════
-# BANNER
+# ORBIT HERO
 # ══════════════════════════════════════════════════════════════════════════
-def banner():
-    W, H = 1200, 400
+def orbit():
+    W, H = 1000, 520
     d = Doc()
-    rnd = random.Random(42)
-    css = """
-.hot{animation:hot 2.4s ease-in-out infinite}@keyframes hot{50%{opacity:.25}}
-.grid{animation:gridmv 6s linear infinite}@keyframes gridmv{to{transform:translateY(40px)}}
-.wave{animation:wave 4s linear infinite}@keyframes wave{to{transform:translateX(-160px)}}
-.rise{animation:rise 1s cubic-bezier(.2,.7,.2,1) both}@keyframes rise{from{opacity:0;transform:translateY(14px)}}
+    rnd = random.Random(9)
+    cx, cy = W/2, 262
+    css = TW_CSS + """
+.sun{animation:sun 5s ease-in-out infinite}@keyframes sun{50%{opacity:.7}}
+.in{animation:in 1.1s cubic-bezier(.2,.7,.2,1) both}@keyframes in{from{opacity:0;transform:translateY(10px)}}
 """
     b = ('<defs>'
-         f'<linearGradient id="bg" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#03161b"/>'
-         f'<stop offset=".55" stop-color="#071a24"/><stop offset="1" stop-color="#0a0f1e"/></linearGradient>'
-         f'<radialGradient id="glow" cx=".23" cy=".5" r=".45"><stop offset="0" stop-color="{TEAL}" stop-opacity=".22"/>'
-         f'<stop offset="1" stop-color="{TEAL}" stop-opacity="0"/></radialGradient>'
-         f'<linearGradient id="sweep" x1="0" y1="0" x2="1" y2="0"><stop offset="0" stop-color="{TEAL}" stop-opacity="0"/>'
-         f'<stop offset="1" stop-color="{TEAL}" stop-opacity=".35"/></linearGradient>'
-         f'<linearGradient id="nameG" x1="0" x2="1"><stop offset="0" stop-color="#ffffff"/><stop offset="1" stop-color="{MINT}"/></linearGradient>'
-         f'<clipPath id="clip"><rect width="{W}" height="{H}" rx="18"/></clipPath>'
-         f'<pattern id="dots" width="22" height="22" patternUnits="userSpaceOnUse"><circle cx="1" cy="1" r="1" fill="{TEAL}" opacity=".13"/></pattern>'
+         f'<radialGradient id="bg" cx=".5" cy=".5" r=".75"><stop offset="0" stop-color="#1a1840"/><stop offset=".6" stop-color="{SPACE}"/></radialGradient>'
+         f'<radialGradient id="sun" cx=".5" cy=".5" r=".5"><stop offset="0" stop-color="{AMBER}" stop-opacity=".5"/>'
+         f'<stop offset=".45" stop-color="{CORAL}" stop-opacity=".16"/><stop offset="1" stop-color="{CORAL}" stop-opacity="0"/></radialGradient>'
+         f'<linearGradient id="nm" x1="0" x2="1"><stop offset="0" stop-color="#fff"/><stop offset=".55" stop-color="#ffe6bf"/><stop offset="1" stop-color="{AMBER}"/></linearGradient>'
+         '<radialGradient id="shade" cx=".35" cy=".35" r=".7"><stop offset="0" stop-color="#fff" stop-opacity=".5"/>'
+         '<stop offset="1" stop-color="#000" stop-opacity=".35"/></radialGradient>'
+         f'<clipPath id="cl"><rect width="{W}" height="{H}" rx="20"/></clipPath>'
          '</defs>')
-    b += f'<g clip-path="url(#clip)"><rect width="{W}" height="{H}" fill="url(#bg)"/>'
-    b += f'<rect width="{W}" height="{H}" fill="url(#dots)"/><rect width="{W}" height="{H}" fill="url(#glow)"/>'
+    b += f'<g clip-path="url(#cl)"><rect width="{W}" height="{H}" fill="url(#bg)"/>{stars(rnd, W, H)}'
+    b += f'<ellipse cx="{cx}" cy="{cy}" rx="300" ry="190" fill="url(#sun)" class="sun"/>'
 
-    # perspective floor grid, bottom
-    hy = 300
-    floor = "".join(f'<path d="M{600 + (i-15)*20} {hy}L{600 + (i-15)*130} {H}" stroke="{TEAL}" stroke-opacity=".10"/>' for i in range(31))
-    rows = "".join(f'<path d="M0 {hy + k*k*2.2 + 4:.1f}H{W}" stroke="{TEAL}" stroke-opacity=".10"/>' for k in range(1, 14))
-    b += f'<g>{floor}<clipPath id="fl"><rect y="{hy}" width="{W}" height="{H-hy}"/></clipPath><g clip-path="url(#fl)"><g class="grid">{rows}</g></g></g>'
+    orbits = [(300, 120), (342, 148), (382, 174), (420, 198), (455, 220), (488, 240)]
+    for i, ((rx, ry), p) in enumerate(zip(orbits, PROJECTS)):
+        ring = f"M{cx-rx} {cy}A{rx} {ry} 0 1 0 {cx+rx} {cy}A{rx} {ry} 0 1 0 {cx-rx} {cy}"
+        b += f'<path d="{ring}" stroke="{p["color"]}" stroke-opacity=".22" stroke-dasharray="{"3 7" if i % 2 else "none"}"/>'
+        dur = 40 + i*8
+        lbl = d.text(MONOB, p["short"].upper(), 17, 4, 11, fill=p["color"], ls=.08)
+        r = 7 + (i % 3)
+        b += (f'<g><circle r="17" fill="{p["color"]}" opacity=".14"/><circle r="{r}" fill="{p["color"]}"/>'
+              f'<circle r="{r}" fill="url(#shade)"/>{lbl}'
+              f'<animateMotion dur="{dur}s" begin="-{dur*i/6 + 4:.1f}s" repeatCount="indefinite" path="{ring}"/></g>')
 
-    # radar + node network, left
-    cx, cy = 260, 190
-    for r in (55, 105, 155):
-        b += f'<circle cx="{cx}" cy="{cy}" r="{r}" stroke="{TEAL}" stroke-opacity=".16"/>'
-    b += f'<path d="M{cx-170} {cy}H{cx+170}M{cx} {cy-170}V{cy+170}" stroke="{TEAL}" stroke-opacity=".08"/>'
-    b += (f'<g><path d="M{cx} {cy}L{cx+155} {cy}A155 155 0 0 0 {cx + 155*math.cos(math.radians(-38)):.1f} {cy + 155*math.sin(math.radians(-38)):.1f}Z" fill="url(#sweep)"/>'
-          f'<path d="M{cx} {cy}L{cx+155} {cy}" stroke="{TEAL}" stroke-width="1.5" stroke-opacity=".8"/>'
-          f'<animateTransform attributeName="transform" type="rotate" from="0 {cx} {cy}" to="360 {cx} {cy}" dur="6s" repeatCount="indefinite"/></g>')
-    nodes = []
-    while len(nodes) < 15:
-        a, r = rnd.uniform(0, 2*math.pi), rnd.uniform(30, 150)
-        p = (cx + r*math.cos(a), cy + r*math.sin(a)*.9)
-        if all(math.dist(p, q) > 42 for q in nodes):
-            nodes.append(p)
-    edges = []
-    for i, p in enumerate(nodes):
-        near = sorted(range(len(nodes)), key=lambda j: math.dist(p, nodes[j]))[1:3]
-        for j in near:
-            if (j, i) not in edges:
-                edges.append((i, j))
-    for k, (i, j) in enumerate(edges):
-        (x1, y1), (x2, y2) = nodes[i], nodes[j]
-        b += f'<path d="M{x1:.1f} {y1:.1f}L{x2:.1f} {y2:.1f}" stroke="{TEAL}" stroke-opacity=".28"/>'
-        if k % 2 == 0:
-            b += (f'<circle r="2.2" fill="{MINT}"><animateMotion dur="{rnd.uniform(1.8,3.2):.1f}s" begin="{rnd.uniform(0,2):.1f}s" '
-                  f'repeatCount="indefinite" path="M{x1:.1f} {y1:.1f}L{x2:.1f} {y2:.1f}"/></circle>')
-    for k, (x, y) in enumerate(nodes):
-        hot = k % 4 == 0
-        if hot:
-            b += f'<circle cx="{x:.1f}" cy="{y:.1f}" r="9" fill="{TEAL}" opacity=".25" class="hot" style="animation-delay:{k*.3:.1f}s"/>'
-        b += f'<circle cx="{x:.1f}" cy="{y:.1f}" r="{3.6 if hot else 2.6}" fill="{MINT if hot else TEAL}"/>'
-    b += f'<circle cx="{cx}" cy="{cy}" r="5" fill="#fff"/><circle cx="{cx}" cy="{cy}" r="12" stroke="#fff" stroke-opacity=".4"/>'
-
-    # text, right
-    tx = 500
-    b += f'<g class="rise">{d.text(MONOB, "// EDGE AI · FORECASTING · ROBOTICS · SECURITY", tx, 112, 13, fill=TEAL, ls=.14)}</g>'
-    size = 104
-    while SANSB.width("ADITHYAN", size, -.01) > 640:
+    size = 72
+    while DISPLAY.width("ADITHYAN C S S", size, -.01) > 600:
         size -= 1
-    b += f'<g class="rise" style="animation-delay:.12s">{d.text(SANSB, "ADITHYAN", tx - 4, 206, size, fill="url(#nameG)", ls=-.01)}</g>'
-    k = size / SANSB.upm
-    b += (f'<g class="rise" style="animation-delay:.24s">' +
-          d.text(SANSB, "C S S", tx - 2, 206 + size*.9, size*.72, fill="none", ls=.02,
-                 extra=f' stroke="{TEAL}" stroke-width="{1.6/(k*.72):.1f}"') + "</g>")
-    tag = "building systems that sense, predict & recover."
-    nx = tx + SANSB.width("C S S", size*.72, .02) + 26
-    b += f'<g class="rise" style="animation-delay:.36s">{d.text(MONO, tag, nx, 206 + size*.9 - 8, 15.5, fill=SOFT)}</g>'
-
-    # waveform strip
-    wy = 345
-    pts = "".join(f"{'M' if i == 0 else 'L'}{tx + i*4} {wy + 9*math.sin(i*.42)*math.sin(i*.07):.1f}" for i in range(220))
-    b += (f'<clipPath id="wc"><rect x="{tx}" y="{wy-20}" width="{W-tx-40}" height="40"/></clipPath>'
-          f'<g clip-path="url(#wc)"><g class="wave"><path d="{pts}" stroke="{TEAL}" stroke-opacity=".55" stroke-width="1.4"/></g></g>')
+    b += (f'<g class="in">{d.text(MONO, "SIX PROJECTS IN ORBIT", cx, cy - 60, 12, fill=AMBER, anchor="middle", ls=.3)}</g>'
+          f'<g class="in" style="animation-delay:.15s">{d.text(DISPLAY, "ADITHYAN C S S", cx, cy + 22, size, fill="url(#nm)", anchor="middle", ls=-.01)}</g>'
+          f'<g class="in" style="animation-delay:.3s">{d.text(BODY, "edge AI · forecasting · robotics · security · self-healing software", cx, cy + 58, 16, fill=SOFT, anchor="middle")}</g>')
     b += "</g>"
-    b += f'<rect x=".5" y=".5" width="{W-1}" height="{H-1}" rx="18" stroke="{TEAL}" stroke-opacity=".25"/>'
-    save("banner.svg", d.render(W, H, b, css, "Adithyan C S S — building systems that sense, predict & recover"))
+    b += f'<rect x=".5" y=".5" width="{W-1}" height="{H-1}" rx="20" stroke="{LINE}"/>'
+    save("orbit.svg", d.render(W, H, b, css, "Adithyan C S S: six projects in orbit"))
 
 
 # ══════════════════════════════════════════════════════════════════════════
-# DIVIDER
+# PROJECT CARDS — one illustration each
 # ══════════════════════════════════════════════════════════════════════════
-def divider():
-    W, H = 1000, 16
+def art_rs(c, x, y):
+    s = (f'<path d="M{x} {y-56}L{x+48} {y-38}V{y+2}Q{x+48} {y+42} {x} {y+62}Q{x-48} {y+42} {x-48} {y+2}V{y-38}Z" '
+         f'fill="{c}" fill-opacity=".1" stroke="{c}" stroke-width="2"/>')
+    s += f'<path d="M{x} {y-24}V{y+44}" stroke="{c}" stroke-width="2" stroke-dasharray="6 6" class="lane"/>'
+    s += f'<path d="M{x-6} {y-24}L{x-30} {y+40}M{x+6} {y-24}L{x+30} {y+40}" stroke="{c}" stroke-opacity=".5" stroke-width="1.5"/>'
+    s += (f'<g class="bob"><rect x="{x-13}" y="{y-4}" width="26" height="15" rx="3" fill="{SPACE}" stroke="{TEXT}" stroke-width="1.5"/>'
+          f'<path d="M{x-20} {y-4}V{y-11}H{x-13}M{x+13} {y-11}H{x+20}V{y-4}M{x+20} {y+11}V{y+18}H{x+13}M{x-13} {y+18}H{x-20}V{y+11}" stroke="{c}" stroke-width="2"/></g>')
+    return s, (".lane{animation:lane .7s linear infinite}@keyframes lane{to{stroke-dashoffset:-12}}"
+               ".bob{animation:bob 2.4s ease-in-out infinite}@keyframes bob{50%{transform:translate(2px,3px)}}")
+
+
+def art_ag(c, x, y):
+    pts = [(x-62, y+30), (x-44, y+18), (x-30, y+24), (x-14, y+6), (x, y+10)]
+    hist = "M" + "L".join(f"{a} {b}" for a, b in pts)
+    s = (f'<path d="M{x-66} {y+46}H{x+66}" stroke="{LINE}" stroke-width="1.5"/>'
+         f'<path d="M{x} {y+10}L{x+62} {y-46}L{x+62} {y+14}Z" fill="{c}" fill-opacity=".18" class="fan"/>'
+         f'<path d="{hist}" stroke="{SOFT}" stroke-width="2" stroke-linejoin="round"/>'
+         f'<path d="M{x} {y+10}L{x+62} {y-16}" stroke="{c}" stroke-width="2.5" stroke-dasharray="70" class="draw"/>'
+         f'<path d="M{x} {y-50}V{y+46}" stroke="{MUTED}" stroke-dasharray="2 4"/>')
+    leaf = (f'<g class="sway"><path d="M{x-40} {y-22}Q{x-40} {y-52} {x-12} {y-56}Q{x-10} {y-28} {x-40} {y-22}Z" fill="{c}" fill-opacity=".85"/>'
+            f'<path d="M{x-40} {y-22}Q{x-30} {y-40} {x-14} {y-52}" stroke="{SPACE}" stroke-width="1.5"/></g>')
+    css = (".draw{animation:draw 3s ease-out infinite}@keyframes draw{0%{stroke-dashoffset:70}50%,100%{stroke-dashoffset:0}}"
+           ".fan{transform-box:fill-box;transform-origin:left center;animation:fan 3s ease-out infinite}@keyframes fan{0%{transform:scaleY(.1)}50%,100%{transform:scaleY(1)}}"
+           ".sway{transform-box:fill-box;transform-origin:left bottom;animation:sway 3s ease-in-out infinite}@keyframes sway{50%{transform:rotate(-6deg)}}")
+    return s + leaf, css
+
+
+def art_rg(c, x, y):
+    bx, by = x - 30, y + 44
+    s = f'<rect x="{bx-26}" y="{by}" width="52" height="12" rx="3" fill="{c}" fill-opacity=".25" stroke="{c}" stroke-width="1.5"/>'
+    s += (f'<path d="M{bx} {by}L{bx} {by-46}" stroke="{TEXT}" stroke-width="7" stroke-linecap="round"/>'
+          f'<g><path d="M{bx} {by-46}L{bx+52} {by-70}" stroke="{TEXT}" stroke-width="6" stroke-linecap="round"/>'
+          f'<path d="M{bx+52} {by-70}l10 -6M{bx+52} {by-70}l10 6" stroke="{c}" stroke-width="3" stroke-linecap="round"/>'
+          f'<animateTransform attributeName="transform" type="rotate" values="0 {bx} {by-46};-14 {bx} {by-46};0 {bx} {by-46}" dur="3s" repeatCount="indefinite"/></g>'
+          f'<circle cx="{bx}" cy="{by-46}" r="6" fill="{c}"/><circle cx="{bx}" cy="{by}" r="6" fill="{c}"/>')
+    s += (f'<g class="warn"><path d="M{x+46} {y+8}L{x+64} {y+40}H{x+28}Z" fill="{c}"/>'
+          f'<path d="M{x+46} {y+18}V{y+29}" stroke="{SPACE}" stroke-width="3" stroke-linecap="round"/><circle cx="{x+46}" cy="{y+35}" r="1.8" fill="{SPACE}"/></g>')
+    return s, ".warn{animation:warn 1.2s steps(1) infinite}@keyframes warn{50%{opacity:.25}}"
+
+
+def art_hx(c, x, y):
+    A, P = 30, 64
+
+    def strand(ph):
+        return "M" + "L".join(f"{x + A*math.sin(2*math.pi*t/P + ph):.1f} {y - 96 + t}" for t in range(0, 2*P + 66, 2))
+    rungs = ""
+    for k, t in enumerate(range(0, 2*P + 64, 10)):
+        x1 = x + A*math.sin(2*math.pi*t/P)
+        x2 = x + A*math.sin(2*math.pi*t/P + math.pi)
+        col = CORAL if k % 6 == 2 else c
+        rungs += f'<path d="M{x1:.1f} {y-96+t}H{x2:.1f}" stroke="{col}" stroke-opacity=".7" stroke-width="2"/>'
+    s = (f'<g class="hx">{rungs}<path d="{strand(0)}" stroke="{c}" stroke-width="2.5"/>'
+         f'<path d="{strand(math.pi)}" stroke="{TEXT}" stroke-width="2" stroke-opacity=".7"/></g>')
+    return s, f".hx{{animation:hx 4s linear infinite}}@keyframes hx{{to{{transform:translateY({P}px)}}}}"
+
+
+def art_kv(c, x, y):
+    s = (f'<path d="M{x-24} {y-8}V{y-26}A24 24 0 0 1 {x+24} {y-26}V{y-8}" stroke="{TEXT}" stroke-width="6" stroke-linecap="round"/>'
+         f'<rect x="{x-38}" y="{y-10}" width="76" height="60" rx="10" fill="{c}" fill-opacity=".18" stroke="{c}" stroke-width="2"/>'
+         f'<circle cx="{x}" cy="{y+14}" r="7" fill="{c}"/><path d="M{x} {y+18}V{y+32}" stroke="{c}" stroke-width="5" stroke-linecap="round"/>')
+    wave = "M" + "L".join(f"{x-64 + i*3} {y+66 + 5*math.sin(i*.7)*math.sin(i*.15):.1f}" for i in range(44))
+    s += f'<path d="{wave}" stroke="{c}" stroke-width="1.8" stroke-dasharray="160" class="sig"/>'
+    s += f'<g class="ring"><circle cx="{x}" cy="{y+14}" r="7" stroke="{c}" stroke-width="2"/></g>'
+    css = (".sig{animation:sig 2.6s ease-in-out infinite}@keyframes sig{0%{stroke-dashoffset:160}60%,100%{stroke-dashoffset:0}}"
+           ".ring{transform-box:fill-box;transform-origin:center;animation:ring 2s ease-out infinite}@keyframes ring{from{transform:scale(1);opacity:1}to{transform:scale(3.5);opacity:0}}")
+    return s, css
+
+
+def art_sr(c, x, y):
+    s = "".join(f'<path d="M{x+18-r} {y-14}A{r} {r} 0 0 1 {x+18+r} {y-14}" stroke="{c}" stroke-opacity="{.75 - r/100:.2f}" '
+                f'stroke-width="1.5" class="ping" style="animation-delay:{r/60:.2f}s"/>' for r in (16, 30, 44))
+    s += f'<path d="M{x+18} {y-14}V{y+4}" stroke="{TEXT}" stroke-width="2"/><circle cx="{x+18}" cy="{y-14}" r="3" fill="{c}"/>'
+    s += f'<rect x="{x-46}" y="{y+4}" width="92" height="28" rx="7" fill="{c}" fill-opacity=".22" stroke="{c}" stroke-width="2"/>'
+    for wx in (x-28, x+28):
+        s += (f'<g><circle cx="{wx}" cy="{y+40}" r="13" fill="{SPACE}" stroke="{TEXT}" stroke-width="2.5"/>'
+              f'<path d="M{wx-13} {y+40}H{wx+13}M{wx} {y+27}V{y+53}" stroke="{TEXT}" stroke-width="1.5"/>'
+              f'<animateTransform attributeName="transform" type="rotate" from="0 {wx} {y+40}" to="360 {wx} {y+40}" dur="2s" repeatCount="indefinite"/></g>')
+    s += f'<path d="M{x-80} {y+54}H{x+80}" stroke="{LINE}" stroke-width="2" stroke-dasharray="10 8" class="ground"/>'
+    css = (".ping{animation:ping 1.8s ease-in-out infinite}@keyframes ping{50%{opacity:.1}}"
+           ".ground{animation:ground .8s linear infinite}@keyframes ground{to{stroke-dashoffset:18}}")
+    return s, css
+
+
+ARTS = dict(rs=art_rs, ag=art_ag, rg=art_rg, hx=art_hx, kv=art_kv, sr=art_sr)
+
+
+def card(i, p):
+    W, H = 320, 452
     d = Doc()
-    css = ".glint{animation:glint 3.5s ease-in-out infinite}@keyframes glint{from{transform:translateX(-220px)}to{transform:translateX(1000px)}}"
-    b = (f'<defs><linearGradient id="dl" x1="0" x2="1"><stop offset="0" stop-color="{TEAL}" stop-opacity="0"/>'
-         f'<stop offset=".5" stop-color="{TEAL}" stop-opacity=".5"/><stop offset="1" stop-color="{CYAN}" stop-opacity="0"/></linearGradient>'
-         f'<linearGradient id="gl" x1="0" x2="1"><stop offset="0" stop-color="{MINT}" stop-opacity="0"/>'
-         f'<stop offset=".5" stop-color="{MINT}"/><stop offset="1" stop-color="{MINT}" stop-opacity="0"/></linearGradient></defs>'
-         f'<rect y="7.5" width="{W}" height="1" fill="url(#dl)"/>'
-         f'<g class="glint"><rect y="6.5" width="220" height="3" rx="1.5" fill="url(#gl)"/></g>'
-         f'<path d="M{W/2} 3L{W/2+5} 8L{W/2} 13L{W/2-5} 8Z" fill="{TEAL}"/>')
-    save("divider.svg", d.render(W, H, b, css))
+    c = p["color"]
+    art, acss = ARTS[p["key"]](c, W/2, 138)
+    css = acss + f""".sheen{{animation:sheen 6s ease-in-out {i*0.7:.1f}s infinite}}
+@keyframes sheen{{0%,70%{{transform:translateX(-360px)}}100%{{transform:translateX(420px)}}}}"""
+    b = ('<defs>'
+         f'<linearGradient id="cg" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="{SPACE2}"/><stop offset="1" stop-color="{SPACE}"/></linearGradient>'
+         f'<radialGradient id="ag" cx=".5" cy=".55" r=".6"><stop offset="0" stop-color="{c}" stop-opacity=".22"/><stop offset="1" stop-color="{c}" stop-opacity="0"/></radialGradient>'
+         '<linearGradient id="sh" x1="0" x2="1"><stop offset="0" stop-color="#fff" stop-opacity="0"/>'
+         '<stop offset=".5" stop-color="#fff" stop-opacity=".09"/><stop offset="1" stop-color="#fff" stop-opacity="0"/></linearGradient>'
+         f'<clipPath id="cc"><rect width="{W}" height="{H}" rx="20"/></clipPath>'
+         f'<clipPath id="aw"><rect x="22" y="56" width="{W-44}" height="166" rx="12"/></clipPath>'
+         '</defs>')
+    b += f'<g clip-path="url(#cc)"><rect width="{W}" height="{H}" fill="url(#cg)"/>'
+    b += f'<rect x="10" y="10" width="{W-20}" height="{H-20}" rx="13" stroke="{c}" stroke-opacity=".28"/>'
+    b += d.text(MONOB, f"No.{i:02d}", 26, 38, 12, fill=c, ls=.06)
+    cw = MONOB.width(p["cat"], 10, .1) + 18
+    b += f'<rect x="{W-26-cw:.1f}" y="24" width="{cw:.1f}" height="20" rx="10" fill="{c}" fill-opacity=".14" stroke="{c}" stroke-opacity=".5"/>'
+    b += d.text(MONOB, p["cat"], W-26-cw/2, 38, 10, fill=c, anchor="middle", ls=.1)
+    b += f'<rect x="22" y="56" width="{W-44}" height="166" rx="12" fill="{SPACE}" stroke="{LINE}"/>'
+    b += f'<rect x="22" y="56" width="{W-44}" height="166" rx="12" fill="url(#ag)"/>'
+    b += f'<g clip-path="url(#aw)">{art}</g>'
+    size = 28
+    while DISPLAY.width(p["name"], size) > W - 52:
+        size -= 1
+    b += d.text(DISPLAY, p["name"], 26, 262, size, fill=TEXT)
+    b += d.lines(BODY, BODY.wrap(p["line"], 14, W - 52)[:2], 26, 288, 14, 19, fill=SOFT)
+    for j, (k, v) in enumerate(p["stats"]):
+        y = 338 + j*24
+        kw = MONO.width(k, 11)
+        vw = DISPLAY.width(v, 16)
+        b += d.text(MONO, k, 26, y, 11, fill=MUTED)
+        b += f'<path d="M{26 + kw + 8:.1f} {y-4}H{W - 26 - vw - 8:.1f}" stroke="{LINE}" stroke-width="1.5" stroke-dasharray="1 4" stroke-linecap="round"/>'
+        b += d.text(DISPLAY, v, W - 26, y + 1, 16, fill=c if j == 0 else TEXT, anchor="end")
+    x = 26
+    for t in p["tags"]:
+        tw = MONO.width(t, 10) + 16
+        if x + tw > W - 24:
+            break
+        b += f'<rect x="{x:.1f}" y="{H-50}" width="{tw:.1f}" height="22" rx="11" stroke="{LINE}" stroke-width="1.2"/>'
+        b += d.text(MONO, t, x + 8, H - 35, 10, fill=SOFT)
+        x += tw + 6
+    b += f'<g class="sheen"><rect x="-40" y="0" width="140" height="{H}" fill="url(#sh)" transform="skewX(-18)"/></g>'
+    b += "</g>"
+    b += f'<rect x=".75" y=".75" width="{W-1.5}" height="{H-1.5}" rx="20" stroke="{c}" stroke-opacity=".55" stroke-width="1.5"/>'
+    save(f"card-{i:02d}.svg", d.render(W, H, b, css, p["name"]))
 
 
 # ══════════════════════════════════════════════════════════════════════════
-# ABOUT — terminal that types itself
+# TECH CONSTELLATION — which tools power which project
 # ══════════════════════════════════════════════════════════════════════════
-def terminal():
-    W = 1000
+LEFT = [
+    ("Python", "rs ag rg kv"), ("PyTorch · LSTM", "rg"), ("TensorFlow Lite", "rs"), ("YOLOv8 · OpenCV", "rg"),
+    ("Chronos · Prophet", "ag"), ("Groq LLMs", "hx kv"), ("Raspberry Pi", "rs"), ("ESP32", "rs sr"),
+    ("MQTT", "rs"), ("JavaScript", "sr"),
+]
+RIGHT = [
+    ("FastAPI", "rs rg kv"), ("WebSockets", "rs rg sr"), ("NestJS", "ag"), ("MongoDB", "rs hx"),
+    ("PostgreSQL", "ag"), ("Flutter", "rs ag"), ("React", "rs rg"), ("Next.js", "hx kv"),
+    ("Web Crypto · WebAuthn", "kv"), ("n8n", "hx"),
+]
+
+
+def constellation():
+    W, H = 1000, 470
     d = Doc()
-    fs, lh = 14.5, 25
-    script = [
-        ("cmd", "whoami"),
-        ("out", [("adithyan", TEXT), (" — I build systems that ", SOFT), ("sense", TEAL), (", ", SOFT),
-                 ("predict", TEAL), (" and ", SOFT), ("recover", TEAL), (".", SOFT)]),
-        ("cmd", "cat focus.txt"),
-        ("out", [("edge AI on tiny hardware · time-series forecasting · robot safety · web security", SOFT)]),
-        ("cmd", "ls ~/projects"),
-        ("out", [("ridershield-ai/  ", CYAN), ("agriprice-ai/  ", CYAN), ("roboguard/  ", CYAN),
-                 ("helix/  ", CYAN), ("kaaval/  ", CYAN), ("smart-rover/", CYAN)]),
-        ("cmd", "./principles --list"),
-        ("out", [("1. ", MUTED), ("if it isn’t real-time, it doesn’t count", SOFT)]),
-        ("out", [("2. ", MUTED), ("models should fit where they run", SOFT)]),
-        ("out", [("3. ", MUTED), ("design for the failure case first", SOFT)]),
-    ]
-    H = 62 + len(script)*lh + lh + 18
-    b = window(d, W, H, "adithyan@dev: ~")
-    css = ("@keyframes show{from{opacity:0}to{opacity:1}}"
-           ".cur{animation:blink 1s steps(1) infinite}@keyframes blink{50%{opacity:0}}")
-    prompt = "❯" if ord("❯") in MONOB.cmap else ">"
-    t, y, x0 = 0.4, 72, 28
-    for i, (kind, val) in enumerate(script):
-        if kind == "cmd":
-            tw, n = MONO.width(val, fs), len(val)
-            dur = n * 0.055
-            cls = f"t{i}"
-            css += (f".{cls}{{animation:{cls} {dur:.2f}s steps({n}) {t:.2f}s both}}"
-                    f"@keyframes {cls}{{to{{transform:translateX({tw+2:.1f}px)}}}}")
-            g = (d.text(MONOB, prompt, x0, y, fs, fill=TEAL) + d.text(MONO, val, x0 + 22, y, fs, fill=TEXT)
-                 + f'<rect x="{x0+20}" y="{y-fs-2}" width="{tw+40:.1f}" height="{lh}" fill="{PANEL}" class="{cls}"/>')
-            b += f'<g style="animation:show .01s {t:.2f}s both">{g}</g>'
-            t += dur + 0.3
-        else:
-            x, row = x0 + 22, ""
-            for txt, col in val:
-                row += d.text(MONO, txt, x, y, fs, fill=col)
-                x += MONO.width(txt, fs)
-            b += f'<g style="animation:show .01s {t:.2f}s both">{row}</g>'
-            t += 0.2
-        y += lh
-    b += (f'<g style="animation:show .01s {t:.2f}s both">{d.text(MONOB, prompt, x0, y, fs, fill=TEAL)}'
-          f'<rect x="{x0+22}" y="{y-fs+1}" width="9" height="{fs+3}" fill="{TEAL}" class="cur"/></g>')
-    save("terminal.svg", d.render(W, H, b, css, "about"))
-
-
-# ══════════════════════════════════════════════════════════════════════════
-# CONSOLE — three auto-cycling project traces
-# ══════════════════════════════════════════════════════════════════════════
-def console():
-    W, H = 1000, 380
-    d = Doc()
-    C = 18.0          # full cycle
-    seg = C / 3
-    css = f"""
-.pane{{animation:pane {C}s linear infinite both}}
-@keyframes pane{{0%{{opacity:0}}1.5%,31.5%{{opacity:1}}33.3%,100%{{opacity:0}}}}
-.tab{{animation:tab {C}s linear infinite both}}
-@keyframes tab{{0%,33.2%{{fill:{TEAL}}}33.3%,100%{{fill:{MUTED}}}}}
-.bar{{animation:bar {C}s linear infinite both}}
-@keyframes bar{{0%,33.2%{{opacity:1}}33.3%,100%{{opacity:0}}}}
-.rv{{animation:rv {C}s linear infinite both}}
-@keyframes rv{{0%{{opacity:0;transform:translateX(-6px)}}1%,100%{{opacity:1;transform:translateX(0)}}}}
-.lane{{animation:lane .7s linear infinite}}@keyframes lane{{to{{stroke-dashoffset:-16}}}}
-.jit{{animation:jit 2.5s ease-in-out infinite}}@keyframes jit{{50%{{transform:translate(3px,2px)}}}}
-.cur{{animation:cur 4s linear infinite}}@keyframes cur{{from{{transform:translateX(0)}}to{{transform:translateX(400px)}}}}
-.blink{{animation:blink 1s steps(1) infinite}}@keyframes blink{{50%{{opacity:.2}}}}
+    rnd = random.Random(4)
+    css = TW_CSS + """
+.flow{animation:flow 2.2s linear infinite}@keyframes flow{to{stroke-dashoffset:-24}}
+.pulse{animation:pulse 2.6s ease-in-out infinite}@keyframes pulse{50%{opacity:.35}}
 """
-    b = window(d, W, H, "~/console — live traces")
-    tabs = ["ridershield", "roboguard", "kaaval"]
-    tx = 28
-    for i, t in enumerate(tabs):
-        tw = MONOB.width(t, 12)
-        a, z = i*100/3, (i+1)*100/3
-        if i == 0:
-            kf = lambda on, off: f"0%,{z-.2:.1f}%{{{on}}}{z:.1f}%,100%{{{off}}}"
-        else:
-            kf = lambda on, off: f"0%,{a-.2:.1f}%{{{off}}}{a:.1f}%,{z-.2:.1f}%{{{on}}}{min(z, 100):.1f}%,100%{{{off}}}" if i < 2 else f"0%,{a-.2:.1f}%{{{off}}}{a:.1f}%,99.8%{{{on}}}100%{{{off}}}"
-        css += (f"@keyframes tab{i}{{{kf('fill:' + TEAL, 'fill:' + MUTED)}}}"
-                f"@keyframes bar{i}{{{kf('opacity:1', 'opacity:0')}}}")
-        b += f'<g style="animation:tab{i} {C}s linear infinite">{d.text(MONOB, t, tx, 72, 12)}</g>'
-        b += f'<rect x="{tx}" y="80" width="{tw:.1f}" height="2" rx="1" fill="{TEAL}" style="animation:bar{i} {C}s linear infinite"/>'
-        tx += tw + 30
-    b += d.text(MONO, "illustrative traces · auto-cycling", W - 28, 72, 11, fill=MUTED, anchor="end")
-    b += f'<path d="M1 92H{W-1}" stroke="{DIMLINE}"/>'
+    b = (f'<defs><clipPath id="cl"><rect width="{W}" height="{H}" rx="20"/></clipPath>'
+         f'<radialGradient id="bg" cx=".5" cy=".5" r=".7"><stop offset="0" stop-color="#15173a"/><stop offset="1" stop-color="{SPACE}"/></radialGradient></defs>'
+         f'<g clip-path="url(#cl)"><rect width="{W}" height="{H}" fill="url(#bg)"/>{stars(rnd, W, H, 90, 14)}')
+    b += d.text(MONOB, "TECH CONSTELLATION", 28, 36, 12, fill=AMBER, ls=.2)
+    b += d.text(MONO, "each line = a tool shipped in that project", W - 28, 36, 11, fill=MUTED, anchor="end")
+    cx = W/2
+    py0, pstep = 98, 62
+    ppos = {p["key"]: (cx, py0 + i*pstep) for i, p in enumerate(PROJECTS)}
+    pcol = {p["key"]: p["color"] for p in PROJECTS}
+    ty0 = 76
+    tstep = (H - 42 - ty0) / (len(LEFT) - 1)
 
-    def log(lines, x, y0, start):
-        s = ""
-        for i, parts in enumerate(lines):
-            y = y0 + i*26
-            xx = x
-            row = ""
-            for txt, col in parts:
-                row += d.text(MONO, txt, xx, y, 12.5, fill=col)
-                xx += MONO.width(txt, 12.5)
-            s += f'<g class="rv" style="animation-delay:{start + 0.5 + i*0.55:.2f}s">{row}</g>'
-        return s
+    def side(items, x, anchor, sign):
+        s, links = "", ""
+        for j, (name, keys) in enumerate(items):
+            y = ty0 + j*tstep
+            ks = keys.split()
+            r = 2.6 + len(ks)*1.2
+            for k in ks:
+                px, pyy = ppos[k]
+                ex = px + sign*78
+                links += (f'<path d="M{x} {y:.1f}C{x - sign*120:.1f} {y:.1f} {ex + sign*120:.1f} {pyy} {ex:.1f} {pyy}" '
+                          f'stroke="{pcol[k]}" stroke-opacity=".42" stroke-width="1.3" stroke-dasharray="4 8" class="flow"/>')
+            s += f'<circle cx="{x}" cy="{y:.1f}" r="{r:.1f}" fill="{TEXT}"/><circle cx="{x}" cy="{y:.1f}" r="{r+5:.1f}" stroke="{TEXT}" stroke-opacity=".2"/>'
+            s += d.text(MONO, name, x + sign*16, y + 4, 12.5, fill=SOFT, anchor=anchor)
+        return links, s
 
-    # ── pane 1: RiderShield ───────────────────────────────────────────────
-    vx, vy, vw, vh = 28, 108, 400, 248
-    p = f'<rect x="{vx}" y="{vy}" width="{vw}" height="{vh}" rx="10" fill="{BG}" stroke="{LINE}"/>'
-    hz = vy + 70
-    cxr = vx + vw/2
-    p += (f'<path d="M{cxr-10} {hz}L{vx+20} {vy+vh}M{cxr+10} {hz}L{vx+vw-20} {vy+vh}" stroke="{MUTED}" stroke-width="1.5"/>'
-          f'<path d="M{cxr} {hz}V{vy+vh}" stroke="{SOFT}" stroke-width="2.5" stroke-dasharray="8 8" class="lane"/>'
-          f'<path d="M{vx} {hz}H{vx+vw}" stroke="{LINE}"/>')
-    car = (f'<rect x="{cxr-34}" y="{vy+122}" width="68" height="34" rx="6" fill="#16222c" stroke="{SOFT}"/>'
-           f'<rect x="{cxr-28}" y="{vy+142}" width="12" height="5" rx="2" fill="{BAD}"/><rect x="{cxr+16}" y="{vy+142}" width="12" height="5" rx="2" fill="{BAD}"/>'
-           f'<path d="M{cxr-46} {vy+124}V{vy+110}H{cxr-32}M{cxr+32} {vy+110}H{cxr+46}V{vy+124}M{cxr+46} {vy+156}V{vy+170}H{cxr+32}M{cxr-32} {vy+170}H{cxr-46}V{vy+156}" stroke="{TEAL}" stroke-width="2"/>'
-           + d.text(MONOB, "car 0.94", cxr-46, vy+102, 11, fill=TEAL))
-    p += f'<g class="jit">{car}</g>'
-    p += d.text(MONOB, "15 FPS", vx+16, vy+24, 12, fill=TEXT) + d.text(MONO, "mobilenetv2 · int8", vx+vw-16, vy+24, 11, fill=MUTED, anchor="end")
-    p += d.text(MONO, "TTC", vx+16, vy+vh-18, 11, fill=MUTED) + d.text(MONOB, "2.4 s", vx+46, vy+vh-18, 12, fill=WARN)
-    p += f'<circle cx="{vx+vw-22}" cy="{vy+vh-22}" r="5" fill="{BAD}" class="blink"/>'
-    lx = 460
-    p += log([
-        [("[pi]    ", MUTED), ("frame 1042 → tflite int8 · 61 ms", SOFT)],
-        [("[pi]    ", MUTED), ("collision_risk=", SOFT), ("0.87", WARN), ("  ttc=2.4s", SOFT)],
-        [("[esp32] ", MUTED), ("publish ", SOFT), ("ridershield/hazard", CYAN), (" qos=1", SOFT)],
-        [("[api]   ", MUTED), ("ws broadcast → 3 riders nearby", SOFT)],
-        [("[app]   ", MUTED), ("BRAKE ALERT", BAD), (" shown · haptic + voice", SOFT)],
-    ], lx, 134, 0)
-    p += d.text(MONO, "latency budget", lx, 292, 11, fill=MUTED) + d.text(MONOB, "61 / 100 ms", W-28, 292, 11, fill=TEAL, anchor="end")
-    p += f'<rect x="{lx}" y="302" width="{W-28-lx}" height="8" rx="4" fill="{DIMLINE}"/><rect x="{lx}" y="302" width="{(W-28-lx)*.61:.0f}" height="8" rx="4" fill="{TEAL}"/>'
-    p += d.text(MONO, "RiderShield AI · on-device collision detection", lx, 340, 11, fill=MUTED)
-    b += f'<g class="pane" style="animation-delay:0s">{p}</g>'
+    l1, s1 = side(LEFT, 250, "end", -1)
+    l2, s2 = side(RIGHT, W - 250, "start", 1)
+    b += l1 + l2 + s1 + s2
+    for i, p in enumerate(PROJECTS):
+        px, pyy = ppos[p["key"]]
+        w = DISPLAY.width(p["short"], 15) + 40
+        b += f'<path d="M{px - 78} {pyy}H{px + 78}" stroke="{p["color"]}" stroke-opacity=".5" stroke-width="1.3"/>'
+        b += (f'<rect x="{px - w/2:.1f}" y="{pyy - 17}" width="{w:.1f}" height="34" rx="17" fill="{SPACE}" stroke="{p["color"]}" stroke-width="1.5"/>'
+              f'<circle cx="{px - w/2 + 16:.1f}" cy="{pyy}" r="4" fill="{p["color"]}" class="pulse" style="animation-delay:{i*.4:.1f}s"/>')
+        b += d.text(DISPLAY, p["short"], px + 8, pyy + 5.5, 15, fill=TEXT, anchor="middle")
+    b += "</g>"
+    b += f'<rect x=".5" y=".5" width="{W-1}" height="{H-1}" rx="20" stroke="{LINE}"/>'
+    save("constellation.svg", d.render(W, H, b, css, "Tech constellation"))
 
-    # ── pane 2: RoboGuard ─────────────────────────────────────────────────
-    rnd = random.Random(5)
-    p = f'<rect x="{vx}" y="{vy}" width="{vw}" height="{vh}" rx="10" fill="{BG}" stroke="{LINE}"/>'
-    mid = vy + 120
-    fx = vx + vw - 60
-    wx = fx - 110
-    pts = []
-    for i in range(0, vw - 20, 3):
-        x = vx + 10 + i
-        g = max(0, (x - wx + 60) / (fx - wx + 60))
-        a = 7 + 46*g**2
-        pts.append(f"{x} {mid + a*math.sin(i*.33) + rnd.uniform(-2.5, 2.5):.1f}")
-    p += (f'<rect x="{wx}" y="{vy+40}" width="{fx-wx}" height="{vh-70}" fill="{WARN}" opacity=".08"/>'
-          f'<path d="M{fx} {vy+40}V{vy+vh-30}" stroke="{BAD}" stroke-width="1.5" stroke-dasharray="4 4"/>'
-          f'<path d="M{vx+10} {mid-58}H{vx+vw-10}" stroke="{WARN}" stroke-opacity=".5" stroke-dasharray="3 5"/>'
-          f'<path d="M{"L".join(pts)}" stroke="{CYAN}" stroke-width="1.6"/>')
-    p += (f'<g class="cur"><path d="M{vx+10} {vy+40}V{vy+vh-30}" stroke="{TEAL}" stroke-width="1.5"/>'
-          f'<circle cx="{vx+10}" cy="{vy+40}" r="4" fill="{TEAL}"/></g>')
-    p += d.text(MONOB, "motor_2 · current", vx+16, vy+24, 12, fill=TEXT) + d.text(MONO, "lstm window=64", vx+vw-16, vy+24, 11, fill=MUTED, anchor="end")
-    p += d.text(MONOB, "warn", wx+6, vy+vh-14, 11, fill=WARN) + d.text(MONOB, "fault", fx+6, vy+vh-14, 11, fill=BAD)
-    p += log([
-        [("[tele]  ", MUTED), ("10 Hz · motor_2 current, temp, rpm", SOFT)],
-        [("[lstm]  ", MUTED), ("anomaly score ", SOFT), ("0.31 → 0.72", WARN)],
-        [("[lstm]  ", MUTED), ("FAULT PREDICTED", BAD), (" in ~18 steps", SOFT)],
-        [("[yolo]  ", MUTED), ("person in zone B · ", SOFT), ("slow to 40%", WARN)],
-        [("[ws]    ", MUTED), ("alert → mission control dashboard", SOFT)],
-    ], lx, 134, seg)
-    p += d.text(MONO, "early warning", lx, 292, 11, fill=MUTED) + d.text(MONOB, "10–30 steps ahead", W-28, 292, 11, fill=TEAL, anchor="end")
-    for i in range(30):
-        c = TEAL if i < 12 else (WARN if i < 24 else BAD)
-        p += f'<rect x="{lx + i*((W-28-lx)/30):.1f}" y="302" width="{(W-28-lx)/30 - 3:.1f}" height="8" rx="2" fill="{c}" opacity="{.9 if 10 <= i <= 28 else .3}"/>'
-    p += d.text(MONO, "RoboGuard · predictive fault detection", lx, 340, 11, fill=MUTED)
-    b += f'<g class="pane" style="animation-delay:{seg:.1f}s">{p}</g>'
 
-    # ── pane 3: Kaaval ────────────────────────────────────────────────────
-    p = f'<rect x="{vx}" y="{vy}" width="{vw}" height="{vh}" rx="10" fill="{BG}" stroke="{LINE}"/>'
-    p += d.text(MONOB, "gateway · 7 checks / request", vx+16, vy+24, 12, fill=TEXT)
-    checks = ["session active", "signature (P-256)", "method · origin · path", "body hash",
-              "single-use nonce", "strictly increasing seq", "freshness window"]
-    for i, c in enumerate(checks):
-        y = vy + 50 + i*27
-        g = check(vx+18, y-9, 9) + d.text(MONO, c, vx+38, y, 12.5, fill=SOFT)
-        p += f'<g class="rv" style="animation-delay:{2*seg + 0.3 + i*0.35:.2f}s">{g}</g>'
-    p += log([
-        [("GET  /account   ", SOFT), ("signed  seq 41", MUTED), ("  → 200", TEAL)],
-        [("POST /transfer  ", SOFT), ("signed  seq 42", MUTED), ("  → 200", TEAL)],
-        [("GET  /account   ", SOFT), ("cookie only   ", WARN), ("→ 401 proof_absent", BAD)],
-        [("GET  /account   ", SOFT), ("nonce reused  ", WARN), ("→ 401 replay", BAD)],
-        [("[chronicle]     ", MUTED), ("incident #7 narrated", SOFT)],
-    ], lx, 134, 2*seg)
-    p += d.text(MONO, "stolen cookies accepted", lx, 292, 11, fill=MUTED) + d.text(MONOB, "0", W-28, 292, 11, fill=TEAL, anchor="end")
-    p += f'<rect x="{lx}" y="302" width="{W-28-lx}" height="8" rx="4" fill="{DIMLINE}"/>'
-    p += d.text(MONO, "Kaaval · per-request signed sessions", lx, 340, 11, fill=MUTED)
-    b += f'<g class="pane" style="animation-delay:{2*seg:.1f}s">{p}</g>'
-    save("console.svg", d.render(W, H, b, css, "console"))
+# ══════════════════════════════════════════════════════════════════════════
+# FOOTER
+# ══════════════════════════════════════════════════════════════════════════
+def footer():
+    W, H = 1000, 90
+    d = Doc()
+    rnd = random.Random(2)
+    path = f"M60 45H{W - 60}"
+    b = (f'<defs><clipPath id="cl"><rect width="{W}" height="{H}" rx="20"/></clipPath></defs>'
+         f'<g clip-path="url(#cl)"><rect width="{W}" height="{H}" fill="{SPACE}"/>{stars(rnd, W, H, 70, 20)}')
+    b += f'<path d="M60 45H{W/2 - 190}M{W/2 + 190} 45H{W-60}" stroke="{LINE}" stroke-dasharray="2 6"/>'
+    b += d.text(MONO, "END OF TRANSMISSION", W/2, 50, 13, fill=SOFT, anchor="middle", ls=.35)
+    b += f'<circle r="4" fill="{AMBER}"><animateMotion dur="9s" repeatCount="indefinite" path="{path}"/></circle>'
+    b += "</g>" + f'<rect x=".5" y=".5" width="{W-1}" height="{H-1}" rx="20" stroke="{LINE}"/>'
+    save("footer.svg", d.render(W, H, b, TW_CSS, "end of transmission"))
 
 
 if __name__ == "__main__":
-    banner()
-    divider()
-    terminal()
-    console()
+    orbit()
+    for i, p in enumerate(PROJECTS, 1):
+        card(i, p)
+    constellation()
+    footer()
